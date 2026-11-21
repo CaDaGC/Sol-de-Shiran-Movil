@@ -3,13 +3,18 @@ package pe.edu.upeu.solshiran.di
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 import pe.edu.upeu.solshiran.data.remote.AuthApiService
+import pe.edu.upeu.solshiran.data.remote.CatalogoApiService
 import pe.edu.upeu.solshiran.data.remote.HttpClientFactory
 import pe.edu.upeu.solshiran.data.repository.AuthRepositoryImpl
+import pe.edu.upeu.solshiran.data.repository.CabanaRepositoryImpl
 import pe.edu.upeu.solshiran.domain.repository.AuthRepository
+import pe.edu.upeu.solshiran.domain.repository.CabanaRepository
 import pe.edu.upeu.solshiran.domain.usecase.CerrarSesionUseCase
 import pe.edu.upeu.solshiran.domain.usecase.IniciarSesionUseCase
+import pe.edu.upeu.solshiran.domain.usecase.ListarCabanasUseCase
 import pe.edu.upeu.solshiran.domain.usecase.RecuperarSesionUseCase
 import pe.edu.upeu.solshiran.presentation.auth.LoginViewModel
+import pe.edu.upeu.solshiran.presentation.catalogo.CatalogoViewModel
 
 val dataModule = module {
     single {
@@ -29,6 +34,21 @@ val dataModule = module {
             almacen = get()
         )
     }
+
+    single {
+        CatalogoApiService(
+            client = get(),
+            configuracion = get()
+        )
+    }
+
+    single<CabanaRepository> {
+        CabanaRepositoryImpl(
+            api = get(),
+            authRepository = get(),
+            configuracion = get()
+        )
+    }
 }
 
 val domainModule = module {
@@ -43,6 +63,10 @@ val domainModule = module {
     factory {
         CerrarSesionUseCase(repository = get())
     }
+
+    factory {
+        ListarCabanasUseCase(repository = get())
+    }
 }
 
 val presentationModule = module {
@@ -51,6 +75,12 @@ val presentationModule = module {
             iniciarSesion = get(),
             recuperarSesion = get(),
             cerrarSesion = get()
+        )
+    }
+
+    viewModel {
+        CatalogoViewModel(
+            listarCabanas = get()
         )
     }
 }
