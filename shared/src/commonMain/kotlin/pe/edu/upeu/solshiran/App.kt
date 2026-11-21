@@ -1,129 +1,289 @@
 package pe.edu.upeu.solshiran
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.toRoute
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
+import pe.edu.upeu.solshiran.domain.model.Sesion
+import pe.edu.upeu.solshiran.navigation.Catalogo
+import pe.edu.upeu.solshiran.navigation.Cuenta
+import pe.edu.upeu.solshiran.navigation.DetalleCabana
+import pe.edu.upeu.solshiran.navigation.Login
 import pe.edu.upeu.solshiran.presentation.auth.LoginScreen
 import pe.edu.upeu.solshiran.presentation.auth.LoginViewModel
 import pe.edu.upeu.solshiran.presentation.catalogo.CatalogoScreen
+import pe.edu.upeu.solshiran.presentation.components.IconoMenu
+import pe.edu.upeu.solshiran.presentation.components.IconoVolver
+import pe.edu.upeu.solshiran.presentation.components.MenuLateral
+import pe.edu.upeu.solshiran.presentation.cuenta.CuentaScreen
+import pe.edu.upeu.solshiran.presentation.detalle.DetalleCabanaScreen
 
 @Composable
 fun App() {
     val loginViewModel = koinViewModel<LoginViewModel>()
-
-    val estadoLogin by loginViewModel.estado
-        .collectAsStateWithLifecycle()
-
-    var mostrarLogin by rememberSaveable {
-        mutableStateOf(false)
-    }
-
-    var habiaSesion by remember {
-        mutableStateOf(false)
-    }
-
-    val sesion = estadoLogin.sesion
+    val estado by loginViewModel.estado.collectAsStateWithLifecycle()
 
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         loginViewModel.validarVigencia()
-    }
-
-    LaunchedEffect(sesion) {
-        if (sesion != null) {
-            habiaSesion = true
-            mostrarLogin = false
-        } else if (habiaSesion) {
-            habiaSesion = false
-            mostrarLogin = true
-        }
     }
 
     MaterialTheme {
         Surface(
             modifier = Modifier.fillMaxSize()
         ) {
-            when {
-                estadoLogin.comprobandoSesion -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
+            if (estado.comprobandoSesion) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                val sesion = estado.sesion
+
+                val inicio: Any = when {
+                    sesion != null &&
+                            sesion.rol !in setOf("CLIENTE", "ADMIN") -> Cuenta
+
+                    sesion != null -> Catalogo
+
+                    estado.mensaje != null -> Login
+
+                    else -> Catalogo
                 }
 
-                sesion != null &&
-                        sesion.rol !in setOf("CLIENTE", "ADMIN") -> {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .safeDrawingPadding()
-                            .padding(24.dp),
-                        verticalArrangement = Arrangement.spacedBy(
-                            space = 16.dp,
-                            alignment = Alignment.CenterVertically
-                        ),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "Hola, ${sesion.nombreUsuario}",
-                            style = MaterialTheme.typography.titleLarge
-                        )
+                key(sesion?.idUsuario, sesion?.rol) {
+                    NavegacionPrincipal(
+                        sesion = sesion,
+                        inicio = inicio,
+                        loginViewModel = loginViewModel
+                    )
+                }
+            }
+        }
+    }
+}
 
-                        Text("Rol: ${sesion.rol}")
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun NavegacionPrincipal(
+    sesion: Sesion?,
+    inicio: Any,
+    loginViewModel: LoginViewModel
+) {
+    val navController = rememberNavController()
+    val entrada by navController.currentBackStackEntryAsState()
+    val destino = entrada?.destination
 
-                        Text(
-                            "El catálogo no está habilitado " +
-                                    "para este rol."
-                        )
+    val drawerState = rememberDrawerState(
+        initialValue = DrawerValue.Closed
+    )
 
-                        Button(
-                            onClick = loginViewModel::salir
-                        ) {
-                            Text("Cerrar sesión")
+    val scope = rememberCoroutineScope()
+
+    val puedeVerCatalogo = sesion == null ||
+            sesion.rol in setOf("CLIENTE", "ADMIN")
+
+    val esCatalogo = destino?.hasRoute<Catalogo>() == true
+    val esDetalle = destino?.hasRoute<DetalleCabana>() == true
+    val esCuenta = destino?.hasRoute<Cuenta>() == true
+
+    val titulo = when {
+        esCatalogo -> "Catálogo"
+        esDetalle -> "Detalle de cabaña"
+        esCuenta -> "Mi cuenta"
+        else -> "Iniciar sesión"
+    }
+
+    val puedeVolver = navController.previousBackStackEntry != null
+
+    fun volverAlCatalogo() {
+        if (!puedeVerCatalogo) {
+            return
+        }
+
+        if (!navController.popBackStack<Catalogo>(inclusive = false)) {
+            navController.navigate(Catalogo) {
+                popUpTo(navController.graph.id) {
+                    inclusive = true
+                }
+
+                launchSingleTop = true
+            }
+        }
+    }
+
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet(
+                drawerState = drawerState
+            ) {
+                MenuLateral(
+                    sesion = sesion,
+                    catalogoSeleccionado = esCatalogo || esDetalle,
+                    cuentaSeleccionada = esCuenta,
+                    onCatalogo = {
+                        scope.launch {
+                            drawerState.close()
+                            volverAlCatalogo()
+                        }
+                    },
+                    onCuenta = {
+                        scope.launch {
+                            drawerState.close()
+
+                            navController.navigate(Cuenta) {
+                                launchSingleTop = true
+                            }
+                        }
+                    },
+                    onIniciarSesion = {
+                        scope.launch {
+                            drawerState.close()
+
+                            navController.navigate(Login) {
+                                launchSingleTop = true
+                            }
+                        }
+                    },
+                    onCerrarSesion = {
+                        scope.launch {
+                            drawerState.close()
+                            loginViewModel.salir()
+                        }
+                    },
+                    onCerrarMenu = {
+                        scope.launch {
+                            drawerState.close()
                         }
                     }
+                )
+            }
+        }
+    ) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = titulo,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
+                    navigationIcon = {
+                        Row {
+                            IconButton(
+                                onClick = {
+                                    scope.launch {
+                                        drawerState.open()
+                                    }
+                                },
+                                modifier = Modifier.semantics {
+                                    contentDescription =
+                                        "Abrir menú de navegación"
+                                }
+                            ) {
+                                IconoMenu()
+                            }
+
+                            if (puedeVolver) {
+                                IconButton(
+                                    onClick = {
+                                        navController.popBackStack()
+                                    },
+                                    modifier = Modifier.semantics {
+                                        contentDescription = "Volver"
+                                    }
+                                ) {
+                                    IconoVolver()
+                                }
+                            }
+                        }
+                    }
+                )
+            }
+        ) { padding ->
+            NavHost(
+                navController = navController,
+                startDestination = inicio,
+                modifier = Modifier.padding(padding)
+            ) {
+                composable<Catalogo> {
+                    if (puedeVerCatalogo) {
+                        CatalogoScreen(
+                            onVerDetalle = { idCabana ->
+                                navController.navigate(
+                                    DetalleCabana(idCabana)
+                                ) {
+                                    launchSingleTop = true
+                                }
+                            }
+                        )
+                    } else {
+                        CuentaScreen(sesion)
+                    }
                 }
 
-                mostrarLogin -> {
+                composable<DetalleCabana> { entry ->
+                    if (puedeVerCatalogo) {
+                        val ruta = entry.toRoute<DetalleCabana>()
+
+                        DetalleCabanaScreen(
+                            idCabana = ruta.idCabana,
+                            onVolverCatalogo = {
+                                volverAlCatalogo()
+                            }
+                        )
+                    } else {
+                        CuentaScreen(sesion)
+                    }
+                }
+
+                composable<Login> {
                     LoginScreen(
                         viewModel = loginViewModel,
                         onVolverCatalogo = {
-                            mostrarLogin = false
+                            volverAlCatalogo()
                         }
                     )
                 }
 
-                else -> {
-                    CatalogoScreen(
-                        sesion = sesion,
-                        onIniciarSesion = {
-                            mostrarLogin = true
-                        },
-                        onCerrarSesion = loginViewModel::salir
-                    )
+                composable<Cuenta> {
+                    CuentaScreen(sesion)
                 }
             }
         }

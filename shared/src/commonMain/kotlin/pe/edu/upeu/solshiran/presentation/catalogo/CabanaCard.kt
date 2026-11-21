@@ -20,10 +20,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
 import pe.edu.upeu.solshiran.domain.model.Cabana
+import androidx.compose.material3.Button
 
 @Composable
 fun CabanaCard(
     cabana: Cabana,
+    onVerDetalle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -93,6 +95,13 @@ fun CabanaCard(
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold
             )
+
+            Button(
+                onClick = onVerDetalle,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Ver detalle")
+            }
         }
     }
 }

@@ -2,7 +2,9 @@ package pe.edu.upeu.solshiran.data.mapper
 
 import io.ktor.http.Url
 import pe.edu.upeu.solshiran.data.remote.dto.CabanaCatalogoDto
+import pe.edu.upeu.solshiran.data.remote.dto.CabanaDetalleDto
 import pe.edu.upeu.solshiran.domain.model.Cabana
+import pe.edu.upeu.solshiran.domain.model.CabanaDetalle
 
 fun CabanaCatalogoDto.aDominio(
     urlBase: String
@@ -19,6 +21,30 @@ fun CabanaCatalogoDto.aDominio(
             ruta = imagenPrincipal,
             urlBase = urlBase
         )
+    )
+}
+
+fun CabanaDetalleDto.aDominio(
+    urlBase: String
+): CabanaDetalle {
+    val todasLasImagenes = (
+            listOfNotNull(imagenPrincipal) + imagenesSecundarias
+            ).mapNotNull { ruta ->
+            resolverImagen(
+                ruta = ruta,
+                urlBase = urlBase
+            )
+        }.distinct()
+
+    return CabanaDetalle(
+        id = idCabana,
+        nombre = nombre,
+        descripcion = descripcion.orEmpty(),
+        aforoMaximo = aforoMaximo,
+        numeroHabitaciones = numHabitaciones,
+        numeroBanos = numBanos,
+        tarifaNoche = tarifaNoche,
+        imagenes = todasLasImagenes
     )
 }
 

@@ -64,6 +64,7 @@ kotlin {
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor3)
+            implementation(libs.navigation.compose)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

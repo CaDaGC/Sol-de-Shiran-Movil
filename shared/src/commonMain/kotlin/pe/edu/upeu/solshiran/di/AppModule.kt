@@ -15,6 +15,8 @@ import pe.edu.upeu.solshiran.domain.usecase.ListarCabanasUseCase
 import pe.edu.upeu.solshiran.domain.usecase.RecuperarSesionUseCase
 import pe.edu.upeu.solshiran.presentation.auth.LoginViewModel
 import pe.edu.upeu.solshiran.presentation.catalogo.CatalogoViewModel
+import pe.edu.upeu.solshiran.domain.usecase.ObtenerDetalleCabanaUseCase
+import pe.edu.upeu.solshiran.presentation.detalle.DetalleCabanaViewModel
 
 val dataModule = module {
     single {
@@ -67,6 +69,10 @@ val domainModule = module {
     factory {
         ListarCabanasUseCase(repository = get())
     }
+
+    factory {
+        ObtenerDetalleCabanaUseCase(repository = get())
+    }
 }
 
 val presentationModule = module {
@@ -81,6 +87,13 @@ val presentationModule = module {
     viewModel {
         CatalogoViewModel(
             listarCabanas = get()
+        )
+    }
+
+    viewModel { (idCabana: Long) ->
+        DetalleCabanaViewModel(
+            idCabana = idCabana,
+            obtenerDetalle = get()
         )
     }
 }

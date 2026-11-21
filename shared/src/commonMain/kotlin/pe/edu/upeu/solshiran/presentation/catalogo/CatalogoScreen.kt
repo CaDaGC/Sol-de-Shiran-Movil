@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -26,20 +25,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.compose.viewmodel.koinViewModel
-import pe.edu.upeu.solshiran.domain.model.Sesion
 
 @Composable
 fun CatalogoScreen(
-    sesion: Sesion?,
-    onIniciarSesion: () -> Unit,
-    onCerrarSesion: () -> Unit
+    onVerDetalle: (Long) -> Unit
 ) {
-    val clave = "catalogo_${sesion?.idUsuario ?: "publico"}"
-
-    val viewModel = koinViewModel<CatalogoViewModel>(
-        key = clave
-    )
-
+    val viewModel = koinViewModel<CatalogoViewModel>()
     val estado by viewModel.estado.collectAsStateWithLifecycle()
 
     LaunchedEffect(viewModel) {
@@ -49,7 +40,6 @@ fun CatalogoScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .safeDrawingPadding()
             .padding(horizontal = 16.dp)
     ) {
         Row(
@@ -58,36 +48,7 @@ fun CatalogoScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Sol de Shirán",
-                style = MaterialTheme.typography.titleLarge
-            )
-
-            if (sesion == null) {
-                TextButton(onClick = onIniciarSesion) {
-                    Text("Iniciar sesión")
-                }
-            } else {
-                TextButton(onClick = onCerrarSesion) {
-                    Text("Cerrar sesión")
-                }
-            }
-        }
-
-        if (sesion != null) {
-            Text(
-                text = "Hola, ${sesion.nombreUsuario}",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Catálogo de cabañas",
+                text = "Nuestras cabañas",
                 style = MaterialTheme.typography.titleMedium
             )
 
@@ -156,30 +117,33 @@ fun CatalogoScreen(
             estado.cabanas.isEmpty() &&
                     estado.mensajeError == null -> {
                 MensajeCatalogo(
-                    texto = "Todavía no hay cabañas para mostrar."
+                    "Todavía no hay cabañas para mostrar."
                 )
             }
 
             estado.cabanas.isNotEmpty() &&
                     visibles.isEmpty() -> {
                 MensajeCatalogo(
-                    texto = "No encontramos cabañas con ese nombre."
+                    "No encontramos cabañas con ese nombre."
                 )
             }
 
             else -> {
                 LazyColumn(
                     modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(
-                        bottom = 24.dp
-                    ),
+                    contentPadding = PaddingValues(bottom = 24.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(
                         items = visibles,
                         key = { it.id }
                     ) { cabana ->
-                        CabanaCard(cabana = cabana)
+                        CabanaCard(
+                            cabana = cabana,
+                            onVerDetalle = {
+                                onVerDetalle(cabana.id)
+                            }
+                        )
                     }
                 }
             }

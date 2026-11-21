@@ -4,6 +4,7 @@ import pe.edu.upeu.solshiran.data.mapper.aDominio
 import pe.edu.upeu.solshiran.data.remote.CatalogoApiService
 import pe.edu.upeu.solshiran.data.remote.ConfiguracionApi
 import pe.edu.upeu.solshiran.domain.model.Cabana
+import pe.edu.upeu.solshiran.domain.model.CabanaDetalle
 import pe.edu.upeu.solshiran.domain.model.ErrorCatalogo
 import pe.edu.upeu.solshiran.domain.repository.AuthRepository
 import pe.edu.upeu.solshiran.domain.repository.CabanaRepository
@@ -15,6 +16,29 @@ class CabanaRepositoryImpl(
 ) : CabanaRepository {
 
     override suspend fun listar(): List<Cabana> {
+        val token = obtenerTokenPermitido()
+
+        return api.listar(token).map { dto ->
+            dto.aDominio(
+                urlBase = configuracion.urlBase
+            )
+        }
+    }
+
+    override suspend fun obtenerDetalle(
+        idCabana: Long
+    ): CabanaDetalle {
+        val token = obtenerTokenPermitido()
+
+        return api.obtenerDetalle(
+            idCabana = idCabana,
+            token = token
+        ).aDominio(
+            urlBase = configuracion.urlBase
+        )
+    }
+
+    private suspend fun obtenerTokenPermitido(): String? {
         val sesion = authRepository.recuperarSesion()
 
         if (
@@ -26,12 +50,6 @@ class CabanaRepositoryImpl(
             )
         }
 
-        return api.listar(
-            token = sesion?.token
-        ).map { dto ->
-            dto.aDominio(
-                urlBase = configuracion.urlBase
-            )
-        }
+        return sesion?.token
     }
 }
