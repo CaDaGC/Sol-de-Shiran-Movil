@@ -43,6 +43,7 @@ import pe.edu.upeu.solshiran.navigation.Cuenta
 import pe.edu.upeu.solshiran.navigation.DetalleCabana
 import pe.edu.upeu.solshiran.navigation.Login
 import pe.edu.upeu.solshiran.navigation.PanelReservas
+import pe.edu.upeu.solshiran.navigation.GestionCabanas
 import pe.edu.upeu.solshiran.navigation.ReservarCabana
 import pe.edu.upeu.solshiran.presentation.auth.LoginScreen
 import pe.edu.upeu.solshiran.presentation.auth.LoginViewModel
@@ -53,6 +54,7 @@ import pe.edu.upeu.solshiran.presentation.components.MenuLateral
 import pe.edu.upeu.solshiran.presentation.cuenta.CuentaScreen
 import pe.edu.upeu.solshiran.presentation.detalle.DetalleCabanaScreen
 import pe.edu.upeu.solshiran.presentation.panel.PanelReservasScreen
+import pe.edu.upeu.solshiran.presentation.gestion.GestionCabanasScreen
 import pe.edu.upeu.solshiran.presentation.reserva.ReservaScreen
 
 @Composable
@@ -127,6 +129,7 @@ private fun NavegacionPrincipal(
     val esDetalle = destino?.hasRoute<DetalleCabana>() == true
     val esCuenta = destino?.hasRoute<Cuenta>() == true
     val esPanel = destino?.hasRoute<PanelReservas>() == true
+    val esGestionCabanas = destino?.hasRoute<GestionCabanas>() == true
 
     val titulo = when {
         esCatalogo -> "Catálogo"
@@ -134,6 +137,7 @@ private fun NavegacionPrincipal(
         destino?.hasRoute<ReservarCabana>() == true -> "Reservar cabaña"
         esCuenta -> "Mi cuenta"
         esPanel -> "Panel de reservas"
+        esGestionCabanas -> "Gestión de cabañas"
         else -> "Iniciar sesión"
     }
 
@@ -166,6 +170,7 @@ private fun NavegacionPrincipal(
                     catalogoSeleccionado = esCatalogo || esDetalle,
                     cuentaSeleccionada = esCuenta,
                     panelSeleccionado = esPanel,
+                    gestionCabanasSeleccionado = esGestionCabanas,
                     onCatalogo = {
                         scope.launch {
                             drawerState.close()
@@ -178,6 +183,12 @@ private fun NavegacionPrincipal(
                             if (!navController.popBackStack<PanelReservas>(inclusive = false)) {
                                 navController.navigate(PanelReservas) { launchSingleTop = true }
                             }
+                        }
+                    },
+                    onGestionCabanas = {
+                        scope.launch {
+                            drawerState.close()
+                            navController.navigate(GestionCabanas) { launchSingleTop = true }
                         }
                     },
                     onCuenta = {
@@ -327,6 +338,13 @@ private fun NavegacionPrincipal(
                     } else {
                         CuentaScreen(sesion)
                     }
+                }
+
+                composable<GestionCabanas> {
+                    GestionCabanasScreen(
+                        sesion = sesion,
+                        onSesionInvalida = loginViewModel::invalidarSesion
+                    )
                 }
 
                 composable<Cuenta> {

@@ -32,8 +32,10 @@ fun MenuLateral(
     catalogoSeleccionado: Boolean,
     cuentaSeleccionada: Boolean,
     panelSeleccionado: Boolean,
+    gestionCabanasSeleccionado: Boolean,
     onCatalogo: () -> Unit,
     onPanelReservas: () -> Unit,
+    onGestionCabanas: () -> Unit,
     onCuenta: () -> Unit,
     onIniciarSesion: () -> Unit,
     onCerrarSesion: () -> Unit,
@@ -85,6 +87,14 @@ fun MenuLateral(
                     },
                     selected = catalogoSeleccionado,
                     onClick = onCatalogo
+                )
+            }
+
+            if (sesion?.rol == "ADMIN") {
+                NavigationDrawerItem(
+                    label = { Text("Gestión de cabañas") },
+                    selected = gestionCabanasSeleccionado,
+                    onClick = onGestionCabanas
                 )
             }
 

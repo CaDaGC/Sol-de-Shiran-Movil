@@ -5,6 +5,7 @@ import org.koin.dsl.module
 import pe.edu.upeu.solshiran.data.remote.AuthApiService
 import pe.edu.upeu.solshiran.data.remote.CatalogoApiService
 import pe.edu.upeu.solshiran.data.remote.HttpClientFactory
+import pe.edu.upeu.solshiran.data.remote.GestionCabanasApiService
 import pe.edu.upeu.solshiran.data.remote.PagoApiService
 import pe.edu.upeu.solshiran.data.remote.PanelReservasApiService
 import pe.edu.upeu.solshiran.data.remote.ReservaApiService
@@ -12,11 +13,13 @@ import pe.edu.upeu.solshiran.data.repository.AuthRepositoryImpl
 import pe.edu.upeu.solshiran.data.repository.CabanaRepositoryImpl
 import pe.edu.upeu.solshiran.data.repository.PagoRepositoryImpl
 import pe.edu.upeu.solshiran.data.repository.PanelReservasRepositoryImpl
+import pe.edu.upeu.solshiran.data.repository.GestionCabanasRepositoryImpl
 import pe.edu.upeu.solshiran.data.repository.ReservaRepositoryImpl
 import pe.edu.upeu.solshiran.domain.repository.AuthRepository
 import pe.edu.upeu.solshiran.domain.repository.CabanaRepository
 import pe.edu.upeu.solshiran.domain.repository.PagoRepository
 import pe.edu.upeu.solshiran.domain.repository.PanelReservasRepository
+import pe.edu.upeu.solshiran.domain.repository.GestionCabanasRepository
 import pe.edu.upeu.solshiran.domain.repository.ReservaRepository
 import pe.edu.upeu.solshiran.domain.usecase.CerrarSesionUseCase
 import pe.edu.upeu.solshiran.domain.usecase.ConsultarDisponibilidadUseCase
@@ -37,9 +40,12 @@ import pe.edu.upeu.solshiran.presentation.detalle.DetalleCabanaViewModel
 import pe.edu.upeu.solshiran.presentation.pago.PagoAdelantoViewModel
 import pe.edu.upeu.solshiran.presentation.panel.PanelReservasViewModel
 import pe.edu.upeu.solshiran.presentation.panel.DetalleReservaPanelViewModel
+import pe.edu.upeu.solshiran.presentation.gestion.GestionCabanasViewModel
 import pe.edu.upeu.solshiran.presentation.reserva.ReservaViewModel
 
 val dataModule = module {
+    single { GestionCabanasApiService(client = get(), configuracion = get()) }
+    single<GestionCabanasRepository> { GestionCabanasRepositoryImpl(api = get(), auth = get()) }
     single { PanelReservasApiService(client = get(), configuracion = get()) }
     single<PanelReservasRepository> { PanelReservasRepositoryImpl(api = get(), authRepository = get()) }
     single { PagoApiService(client = get(), configuracion = get()) }
@@ -113,6 +119,7 @@ val domainModule = module {
 }
 
 val presentationModule = module {
+    viewModel { GestionCabanasViewModel(repository = get()) }
     viewModel { PanelReservasViewModel(consultar = get(), listarCabanas = get()) }
     viewModel { (idReserva: Long) -> DetalleReservaPanelViewModel(idReserva = idReserva, obtenerDetalle = get()) }
     viewModel { (idReserva: Long) ->
