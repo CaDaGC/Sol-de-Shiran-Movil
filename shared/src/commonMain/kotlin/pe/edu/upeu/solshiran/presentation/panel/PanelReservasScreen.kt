@@ -8,11 +8,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +37,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.number
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 import pe.edu.upeu.solshiran.domain.model.EstadoReservaPanel
 import pe.edu.upeu.solshiran.domain.model.ReservaPanel
 import pe.edu.upeu.solshiran.presentation.catalogo.formatearSoles
@@ -44,6 +48,7 @@ fun PanelReservasScreen(onSesionInvalida: () -> Unit) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val lista = rememberLazyListState()
     var reservaAbierta by rememberSaveable { mutableStateOf<Long?>(null) }
+    var detalleReservaId by rememberSaveable { mutableStateOf<Long?>(null) }
 
     LaunchedEffect(estado.sesionInvalida) {
         if (estado.sesionInvalida) onSesionInvalida()
@@ -110,7 +115,8 @@ fun PanelReservasScreen(onSesionInvalida: () -> Unit) {
                         expandida = reservaAbierta == reserva.id,
                         onCambiar = {
                             reservaAbierta = if (reservaAbierta == reserva.id) null else reserva.id
-                        }
+                        },
+                        onDetalle = { detalleReservaId = reserva.id }
                     )
                 }
                 if (pagina.totalPaginas > 1 || pagina.pagina > 0) {
@@ -124,6 +130,14 @@ fun PanelReservasScreen(onSesionInvalida: () -> Unit) {
                 }
             }
         }
+    }
+
+    detalleReservaId?.let { idReserva ->
+        DetalleReservaPanelDialog(
+            idReserva = idReserva,
+            onCerrar = { detalleReservaId = null },
+            onSesionInvalida = onSesionInvalida
+        )
     }
 }
 
@@ -168,7 +182,12 @@ private fun FiltroCabanas(
 }
 
 @Composable
-private fun TarjetaReserva(reserva: ReservaPanel, expandida: Boolean, onCambiar: () -> Unit) {
+private fun TarjetaReserva(
+    reserva: ReservaPanel,
+    expandida: Boolean,
+    onCambiar: () -> Unit,
+    onDetalle: () -> Unit
+) {
     Card(onClick = onCambiar, modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -184,6 +203,7 @@ private fun TarjetaReserva(reserva: ReservaPanel, expandida: Boolean, onCambiar:
                 reserva.correo?.let { Text(it) }
                 Text("Huéspedes: ${reserva.cantidadHuespedes}")
                 Text("Saldo: ${formatearSoles(reserva.saldoPendiente)}")
+                TextButton(onClick = onDetalle) { Text("Ver detalle completo") }
             }
             Text(
                 if (expandida) "Ocultar resumen" else "Ver resumen",
@@ -191,6 +211,61 @@ private fun TarjetaReserva(reserva: ReservaPanel, expandida: Boolean, onCambiar:
             )
         }
     }
+}
+
+@Composable
+private fun DetalleReservaPanelDialog(
+    idReserva: Long,
+    onCerrar: () -> Unit,
+    onSesionInvalida: () -> Unit
+) {
+    val viewModel = koinViewModel<DetalleReservaPanelViewModel>(
+        key = "detalle_reserva_$idReserva",
+        parameters = { parametersOf(idReserva) }
+    )
+    val estado by viewModel.estado.collectAsStateWithLifecycle()
+    LaunchedEffect(estado.sesionInvalida) {
+        if (estado.sesionInvalida) onSesionInvalida()
+    }
+    val detalle = estado.detalle
+    AlertDialog(
+        onDismissRequest = onCerrar,
+        title = { Text("Detalle de reserva") },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                when {
+                    estado.cargando -> {
+                        CircularProgressIndicator()
+                        Text("Cargando detalle…")
+                    }
+                    estado.error != null -> {
+                        Text(estado.error.orEmpty(), color = MaterialTheme.colorScheme.error)
+                        TextButton(onClick = viewModel::cargar) { Text("Reintentar") }
+                    }
+                    detalle != null -> {
+                        Text(detalle.cabana ?: "Cabaña #${detalle.idCabana}", style = MaterialTheme.typography.titleMedium)
+                        Text("Reserva #${detalle.id}")
+                        Text("Estado: ${detalle.estado.etiqueta()}")
+                        Text("Cliente: ${detalle.huesped}")
+                        detalle.correo?.let { Text("Correo: $it") }
+                        Text("Ingreso: ${fechaHora(detalle.ingreso, null)}")
+                        Text("Salida: ${fechaHora(detalle.salida, null)}")
+                        Text("Huéspedes: ${detalle.cantidadHuespedes}")
+                        Text("Tarifa por noche: ${formatearSoles(detalle.tarifaNoche)}")
+                        Text("Total: ${formatearSoles(detalle.total)}")
+                        Text("Adelanto: ${formatearSoles(detalle.adelanto)}")
+                        Text("Saldo pendiente: ${formatearSoles(detalle.saldoPendiente)}")
+                        detalle.fechaCreacion?.let { Text("Creada: ${it.replace('T', ' ').take(16)}") }
+                        detalle.expiraEn?.let { Text("Vence: ${it.replace('T', ' ').take(16)}") }
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onCerrar) { Text("Cerrar") } }
+    )
 }
 
 @Composable

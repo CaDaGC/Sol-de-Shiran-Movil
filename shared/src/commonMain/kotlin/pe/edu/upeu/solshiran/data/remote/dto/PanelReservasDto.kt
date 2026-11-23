@@ -31,3 +31,23 @@ data class ReservaPanelDto(
     val estadoReserva: String,
     val codigo: String? = null
 )
+
+@Serializable
+data class ReservaDetallePanelDto(
+    val idReserva: Long,
+    val idUsuario: Long,
+    val nombreUsuario: String? = null,
+    val emailUsuario: String? = null,
+    val idCabana: Long,
+    val nombreCabana: String? = null,
+    val fechaIngreso: String,
+    val fechaSalida: String,
+    val cantidadHuespedes: Int,
+    val tarifaNocheAplicada: Double,
+    val montoTotal: Double,
+    val montoAdelanto: Double,
+    val saldoPendiente: Double,
+    val estadoReserva: String,
+    val expiraEn: String? = null,
+    val fechaCreacion: String? = null
+)

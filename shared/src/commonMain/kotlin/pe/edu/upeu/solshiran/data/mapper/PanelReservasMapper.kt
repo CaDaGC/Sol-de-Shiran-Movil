@@ -4,8 +4,10 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import pe.edu.upeu.solshiran.data.remote.dto.CabanaPanelDto
 import pe.edu.upeu.solshiran.data.remote.dto.PaginaReservasDto
+import pe.edu.upeu.solshiran.data.remote.dto.ReservaDetallePanelDto
 import pe.edu.upeu.solshiran.data.remote.dto.ReservaPanelDto
 import pe.edu.upeu.solshiran.domain.model.CabanaPanel
+import pe.edu.upeu.solshiran.domain.model.DetalleReservaPanel
 import pe.edu.upeu.solshiran.domain.model.EstadoReservaPanel
 import pe.edu.upeu.solshiran.domain.model.PaginaReservas
 import pe.edu.upeu.solshiran.domain.model.ReservaPanel
@@ -14,6 +16,25 @@ fun CabanaPanelDto.aDominio() = CabanaPanel(idCabana, nombre)
 
 fun PaginaReservasDto.aDominio() =
     PaginaReservas(content.map { it.aDominio() }, page, totalElements, totalPages)
+
+fun ReservaDetallePanelDto.aDominio() = DetalleReservaPanel(
+    id = idReserva,
+    huesped = nombreUsuario?.takeIf { it.isNotBlank() } ?: "Usuario #$idUsuario",
+    correo = emailUsuario?.takeIf { it.isNotBlank() },
+    idCabana = idCabana,
+    cabana = nombreCabana?.takeIf { it.isNotBlank() },
+    ingreso = LocalDate.parse(fechaIngreso),
+    salida = LocalDate.parse(fechaSalida),
+    cantidadHuespedes = cantidadHuespedes,
+    tarifaNoche = tarifaNocheAplicada,
+    total = montoTotal,
+    adelanto = montoAdelanto,
+    saldoPendiente = saldoPendiente,
+    estado = EstadoReservaPanel.entries.firstOrNull { it.name == estadoReserva }
+        ?: EstadoReservaPanel.DESCONOCIDA,
+    expiraEn = expiraEn,
+    fechaCreacion = fechaCreacion
+)
 
 private fun ReservaPanelDto.aDominio() = ReservaPanel(
     id = idReserva,

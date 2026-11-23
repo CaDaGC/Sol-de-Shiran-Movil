@@ -38,5 +38,23 @@ data class PaginaReservas(
     val totalPaginas: Int
 )
 
+data class DetalleReservaPanel(
+    val id: Long,
+    val huesped: String,
+    val correo: String?,
+    val idCabana: Long,
+    val cabana: String?,
+    val ingreso: LocalDate,
+    val salida: LocalDate,
+    val cantidadHuespedes: Int,
+    val tarifaNoche: Double,
+    val total: Double,
+    val adelanto: Double,
+    val saldoPendiente: Double,
+    val estado: EstadoReservaPanel,
+    val expiraEn: String?,
+    val fechaCreacion: String?
+)
+
 fun Sesion?.puedeConsultarPanelReservas(): Boolean =
     this?.rol == "TRABAJADOR" || this?.rol == "ADMIN"

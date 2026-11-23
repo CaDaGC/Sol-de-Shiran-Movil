@@ -17,6 +17,8 @@ class PanelReservasRepositoryImpl(
     override suspend fun consultar(filtro: FiltroPanelReservas) =
         api.consultar(filtro, token()).aDominio()
 
+    override suspend fun detalle(idReserva: Long) = api.detalle(idReserva, token()).aDominio()
+
     private suspend fun token(): String {
         val sesion = authRepository.recuperarSesion()
             ?: throw ErrorReserva("Tu sesión expiró. Vuelve a iniciar sesión.", sesionInvalida = true)

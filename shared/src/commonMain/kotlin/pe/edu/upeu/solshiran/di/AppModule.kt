@@ -24,6 +24,7 @@ import pe.edu.upeu.solshiran.domain.usecase.ConsultarAdelantoUseCase
 import pe.edu.upeu.solshiran.domain.usecase.CrearOrdenAdelantoUseCase
 import pe.edu.upeu.solshiran.domain.usecase.ConsultarFechasOcupadasUseCase
 import pe.edu.upeu.solshiran.domain.usecase.ConsultarPanelReservasUseCase
+import pe.edu.upeu.solshiran.domain.usecase.ObtenerDetalleReservaPanelUseCase
 import pe.edu.upeu.solshiran.domain.usecase.IniciarSesionUseCase
 import pe.edu.upeu.solshiran.domain.usecase.ListarCabanasUseCase
 import pe.edu.upeu.solshiran.domain.usecase.ListarCabanasPanelUseCase
@@ -35,6 +36,7 @@ import pe.edu.upeu.solshiran.domain.usecase.ObtenerDetalleCabanaUseCase
 import pe.edu.upeu.solshiran.presentation.detalle.DetalleCabanaViewModel
 import pe.edu.upeu.solshiran.presentation.pago.PagoAdelantoViewModel
 import pe.edu.upeu.solshiran.presentation.panel.PanelReservasViewModel
+import pe.edu.upeu.solshiran.presentation.panel.DetalleReservaPanelViewModel
 import pe.edu.upeu.solshiran.presentation.reserva.ReservaViewModel
 
 val dataModule = module {
@@ -82,6 +84,7 @@ val dataModule = module {
 val domainModule = module {
     factory { ListarCabanasPanelUseCase(repository = get()) }
     factory { ConsultarPanelReservasUseCase(repository = get()) }
+    factory { ObtenerDetalleReservaPanelUseCase(repository = get()) }
     factory { CrearOrdenAdelantoUseCase(repository = get()) }
     factory { ConsultarAdelantoUseCase(repository = get()) }
     factory { ConsultarFechasOcupadasUseCase(repository = get()) }
@@ -111,6 +114,7 @@ val domainModule = module {
 
 val presentationModule = module {
     viewModel { PanelReservasViewModel(consultar = get(), listarCabanas = get()) }
+    viewModel { (idReserva: Long) -> DetalleReservaPanelViewModel(idReserva = idReserva, obtenerDetalle = get()) }
     viewModel { (idReserva: Long) ->
         PagoAdelantoViewModel(
             idReserva = idReserva,
