@@ -39,6 +39,7 @@ import kotlinx.datetime.number
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import pe.edu.upeu.solshiran.domain.model.EstadoReservaPanel
+import pe.edu.upeu.solshiran.domain.model.MetodoPagoRestante
 import pe.edu.upeu.solshiran.domain.model.ReservaPanel
 import pe.edu.upeu.solshiran.presentation.catalogo.formatearSoles
 
@@ -224,10 +225,13 @@ private fun DetalleReservaPanelDialog(
         parameters = { parametersOf(idReserva) }
     )
     val estado by viewModel.estado.collectAsStateWithLifecycle()
+    var metodoPago by rememberSaveable(idReserva) { mutableStateOf(MetodoPagoRestante.EFECTIVO.name) }
+    var numeroOperacion by rememberSaveable(idReserva) { mutableStateOf("") }
     LaunchedEffect(estado.sesionInvalida) {
         if (estado.sesionInvalida) onSesionInvalida()
     }
     val detalle = estado.detalle
+    val pagoRestante = estado.pagoRestante
     AlertDialog(
         onDismissRequest = onCerrar,
         title = { Text("Detalle de reserva") },
@@ -260,6 +264,52 @@ private fun DetalleReservaPanelDialog(
                         Text("Saldo pendiente: ${formatearSoles(detalle.saldoPendiente)}")
                         detalle.fechaCreacion?.let { Text("Creada: ${it.replace('T', ' ').take(16)}") }
                         detalle.expiraEn?.let { Text("Vence: ${it.replace('T', ' ').take(16)}") }
+                        if (pagoRestante?.completado == true) {
+                            Text("Pago restante registrado: ${formatearSoles(pagoRestante.monto)}")
+                            Text("Método: ${pagoRestante.metodoPago.etiqueta}")
+                            pagoRestante.numeroOperacion?.let { Text("Operación: $it") }
+                        } else if (detalle.estado == EstadoReservaPanel.CONFIRMADA && detalle.saldoPendiente > 0) {
+                            Text("Registrar pago restante y check-in", style = MaterialTheme.typography.titleSmall)
+                            if (estado.consultandoPago) {
+                                CircularProgressIndicator()
+                                Text("Verificando si ya existe un pago…")
+                            } else if (estado.errorPago != null) {
+                                Text(estado.errorPago.orEmpty(), color = MaterialTheme.colorScheme.error)
+                                TextButton(onClick = viewModel::cargar) { Text("Verificar nuevamente") }
+                            } else {
+                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                MetodoPagoRestante.entries.forEach { metodo ->
+                                    OutlinedButton(
+                                        enabled = !estado.registrandoPago,
+                                        onClick = { metodoPago = metodo.name },
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) { Text(if (metodoPago == metodo.name) "✓ ${metodo.etiqueta}" else metodo.etiqueta) }
+                                }
+                            }
+                            val metodo = MetodoPagoRestante.entries.first { it.name == metodoPago }
+                            if (metodo != MetodoPagoRestante.EFECTIVO) {
+                                OutlinedTextField(
+                                    value = numeroOperacion,
+                                    onValueChange = { if (it.length <= 100) numeroOperacion = it },
+                                    label = { Text("Número de operación") },
+                                    singleLine = true,
+                                    enabled = !estado.registrandoPago,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                            estado.errorPago?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                            TextButton(
+                                enabled = !estado.registrandoPago &&
+                                    (metodo == MetodoPagoRestante.EFECTIVO || numeroOperacion.isNotBlank()),
+                                onClick = { viewModel.registrarPago(metodo, numeroOperacion) }
+                            ) {
+                                if (estado.registrandoPago) CircularProgressIndicator()
+                                else Text("Cobrar saldo y registrar check-in")
+                            }
+                            }
+                        } else {
+                            estado.errorPago?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                        }
                     }
                 }
             }

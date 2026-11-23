@@ -1,9 +1,11 @@
 package pe.edu.upeu.solshiran.data.repository
 
 import pe.edu.upeu.solshiran.data.mapper.aDominio
+import pe.edu.upeu.solshiran.data.remote.dto.SolicitudPagoRestanteDto
 import pe.edu.upeu.solshiran.data.remote.PanelReservasApiService
 import pe.edu.upeu.solshiran.domain.model.ErrorReserva
 import pe.edu.upeu.solshiran.domain.model.FiltroPanelReservas
+import pe.edu.upeu.solshiran.domain.model.SolicitudPagoRestante
 import pe.edu.upeu.solshiran.domain.model.puedeConsultarPanelReservas
 import pe.edu.upeu.solshiran.domain.repository.AuthRepository
 import pe.edu.upeu.solshiran.domain.repository.PanelReservasRepository
@@ -18,6 +20,20 @@ class PanelReservasRepositoryImpl(
         api.consultar(filtro, token()).aDominio()
 
     override suspend fun detalle(idReserva: Long) = api.detalle(idReserva, token()).aDominio()
+
+    override suspend fun consultarPagoRestante(idReserva: Long) =
+        api.consultarPagoRestante(idReserva, token())?.aDominio()
+
+    override suspend fun registrarPagoRestante(idReserva: Long, solicitud: SolicitudPagoRestante) =
+        api.registrarPagoRestante(
+            idReserva,
+            SolicitudPagoRestanteDto(
+                metodoPago = solicitud.metodoPago.name,
+                numeroOperacion = solicitud.numeroOperacion,
+                claveIdempotencia = solicitud.claveIdempotencia
+            ),
+            token()
+        ).aDominio()
 
     private suspend fun token(): String {
         val sesion = authRepository.recuperarSesion()

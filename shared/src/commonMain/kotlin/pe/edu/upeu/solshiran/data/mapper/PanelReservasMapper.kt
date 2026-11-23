@@ -6,11 +6,14 @@ import pe.edu.upeu.solshiran.data.remote.dto.CabanaPanelDto
 import pe.edu.upeu.solshiran.data.remote.dto.PaginaReservasDto
 import pe.edu.upeu.solshiran.data.remote.dto.ReservaDetallePanelDto
 import pe.edu.upeu.solshiran.data.remote.dto.ReservaPanelDto
+import pe.edu.upeu.solshiran.data.remote.dto.PagoRestanteDto
 import pe.edu.upeu.solshiran.domain.model.CabanaPanel
 import pe.edu.upeu.solshiran.domain.model.DetalleReservaPanel
 import pe.edu.upeu.solshiran.domain.model.EstadoReservaPanel
 import pe.edu.upeu.solshiran.domain.model.PaginaReservas
 import pe.edu.upeu.solshiran.domain.model.ReservaPanel
+import pe.edu.upeu.solshiran.domain.model.PagoRestanteRegistro
+import pe.edu.upeu.solshiran.domain.model.MetodoPagoRestante
 
 fun CabanaPanelDto.aDominio() = CabanaPanel(idCabana, nombre)
 
@@ -34,6 +37,15 @@ fun ReservaDetallePanelDto.aDominio() = DetalleReservaPanel(
         ?: EstadoReservaPanel.DESCONOCIDA,
     expiraEn = expiraEn,
     fechaCreacion = fechaCreacion
+)
+
+fun PagoRestanteDto.aDominio() = PagoRestanteRegistro(
+    id = id,
+    monto = monto,
+    completado = completado,
+    metodoPago = MetodoPagoRestante.entries.firstOrNull { it.name == metodoPago } ?: MetodoPagoRestante.EFECTIVO,
+    numeroOperacion = numeroOperacion,
+    claveIdempotencia = claveIdempotencia
 )
 
 private fun ReservaPanelDto.aDominio() = ReservaPanel(
