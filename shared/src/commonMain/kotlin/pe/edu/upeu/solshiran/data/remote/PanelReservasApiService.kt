@@ -1,0 +1,36 @@
+package pe.edu.upeu.solshiran.data.remote
+
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.get
+import io.ktor.client.request.parameter
+import io.ktor.client.statement.HttpResponse
+import pe.edu.upeu.solshiran.data.remote.dto.CabanaPanelDto
+import pe.edu.upeu.solshiran.data.remote.dto.PaginaReservasDto
+import pe.edu.upeu.solshiran.domain.model.ErrorReserva
+import pe.edu.upeu.solshiran.domain.model.FiltroPanelReservas
+
+class PanelReservasApiService(private val client: HttpClient, configuracion: ConfiguracionApi) {
+    private val url = "${configuracion.urlBase.trimEnd('/')}/reservas/panel"
+
+    suspend fun listarCabanas(token: String): List<CabanaPanelDto> =
+        client.get("$url/cabanas") { bearerAuth(token) }.leer()
+
+    suspend fun consultar(filtro: FiltroPanelReservas, token: String): PaginaReservasDto =
+        client.get(url) {
+            bearerAuth(token)
+            parameter("page", filtro.pagina)
+            parameter("size", 20)
+            if (filtro.buscar.isNotBlank()) parameter("buscar", filtro.buscar)
+            filtro.idCabana?.let { parameter("idCabana", it) }
+        }.leer()
+
+    private suspend inline fun <reified T> HttpResponse.leer(): T = when (status.value) {
+        200 -> body()
+        400, 422 -> throw ErrorReserva("Revisa los filtros de búsqueda.")
+        401 -> throw ErrorReserva("Tu sesión expiró. Vuelve a iniciar sesión.", sesionInvalida = true)
+        403 -> throw ErrorReserva("Tu cuenta no tiene permiso para consultar el panel de reservas.")
+        else -> throw ErrorReserva("El panel de reservas no está disponible. Inténtalo nuevamente.")
+    }
+}

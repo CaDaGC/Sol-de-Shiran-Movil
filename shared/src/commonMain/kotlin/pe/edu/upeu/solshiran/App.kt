@@ -37,10 +37,12 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import pe.edu.upeu.solshiran.domain.model.Sesion
+import pe.edu.upeu.solshiran.domain.model.puedeConsultarPanelReservas
 import pe.edu.upeu.solshiran.navigation.Catalogo
 import pe.edu.upeu.solshiran.navigation.Cuenta
 import pe.edu.upeu.solshiran.navigation.DetalleCabana
 import pe.edu.upeu.solshiran.navigation.Login
+import pe.edu.upeu.solshiran.navigation.PanelReservas
 import pe.edu.upeu.solshiran.navigation.ReservarCabana
 import pe.edu.upeu.solshiran.presentation.auth.LoginScreen
 import pe.edu.upeu.solshiran.presentation.auth.LoginViewModel
@@ -50,6 +52,7 @@ import pe.edu.upeu.solshiran.presentation.components.IconoVolver
 import pe.edu.upeu.solshiran.presentation.components.MenuLateral
 import pe.edu.upeu.solshiran.presentation.cuenta.CuentaScreen
 import pe.edu.upeu.solshiran.presentation.detalle.DetalleCabanaScreen
+import pe.edu.upeu.solshiran.presentation.panel.PanelReservasScreen
 import pe.edu.upeu.solshiran.presentation.reserva.ReservaScreen
 
 @Composable
@@ -76,6 +79,8 @@ fun App() {
                 val sesion = estado.sesion
 
                 val inicio: Any = when {
+                    sesion?.rol == "TRABAJADOR" -> PanelReservas
+
                     sesion != null &&
                             sesion.rol !in setOf("CLIENTE", "ADMIN") -> Cuenta
 
@@ -121,12 +126,14 @@ private fun NavegacionPrincipal(
     val esCatalogo = destino?.hasRoute<Catalogo>() == true
     val esDetalle = destino?.hasRoute<DetalleCabana>() == true
     val esCuenta = destino?.hasRoute<Cuenta>() == true
+    val esPanel = destino?.hasRoute<PanelReservas>() == true
 
     val titulo = when {
         esCatalogo -> "Catálogo"
         esDetalle -> "Detalle de cabaña"
         destino?.hasRoute<ReservarCabana>() == true -> "Reservar cabaña"
         esCuenta -> "Mi cuenta"
+        esPanel -> "Panel de reservas"
         else -> "Iniciar sesión"
     }
 
@@ -158,10 +165,19 @@ private fun NavegacionPrincipal(
                     sesion = sesion,
                     catalogoSeleccionado = esCatalogo || esDetalle,
                     cuentaSeleccionada = esCuenta,
+                    panelSeleccionado = esPanel,
                     onCatalogo = {
                         scope.launch {
                             drawerState.close()
                             volverAlCatalogo()
+                        }
+                    },
+                    onPanelReservas = {
+                        scope.launch {
+                            drawerState.close()
+                            if (!navController.popBackStack<PanelReservas>(inclusive = false)) {
+                                navController.navigate(PanelReservas) { launchSingleTop = true }
+                            }
                         }
                     },
                     onCuenta = {
@@ -303,6 +319,14 @@ private fun NavegacionPrincipal(
                             volverAlCatalogo()
                         }
                     )
+                }
+
+                composable<PanelReservas> {
+                    if (sesion.puedeConsultarPanelReservas()) {
+                        PanelReservasScreen(onSesionInvalida = loginViewModel::invalidarSesion)
+                    } else {
+                        CuentaScreen(sesion)
+                    }
                 }
 
                 composable<Cuenta> {

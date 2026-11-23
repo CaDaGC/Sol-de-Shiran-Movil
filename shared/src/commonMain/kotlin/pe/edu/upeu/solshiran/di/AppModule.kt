@@ -6,22 +6,27 @@ import pe.edu.upeu.solshiran.data.remote.AuthApiService
 import pe.edu.upeu.solshiran.data.remote.CatalogoApiService
 import pe.edu.upeu.solshiran.data.remote.HttpClientFactory
 import pe.edu.upeu.solshiran.data.remote.PagoApiService
+import pe.edu.upeu.solshiran.data.remote.PanelReservasApiService
 import pe.edu.upeu.solshiran.data.remote.ReservaApiService
 import pe.edu.upeu.solshiran.data.repository.AuthRepositoryImpl
 import pe.edu.upeu.solshiran.data.repository.CabanaRepositoryImpl
 import pe.edu.upeu.solshiran.data.repository.PagoRepositoryImpl
+import pe.edu.upeu.solshiran.data.repository.PanelReservasRepositoryImpl
 import pe.edu.upeu.solshiran.data.repository.ReservaRepositoryImpl
 import pe.edu.upeu.solshiran.domain.repository.AuthRepository
 import pe.edu.upeu.solshiran.domain.repository.CabanaRepository
 import pe.edu.upeu.solshiran.domain.repository.PagoRepository
+import pe.edu.upeu.solshiran.domain.repository.PanelReservasRepository
 import pe.edu.upeu.solshiran.domain.repository.ReservaRepository
 import pe.edu.upeu.solshiran.domain.usecase.CerrarSesionUseCase
 import pe.edu.upeu.solshiran.domain.usecase.ConsultarDisponibilidadUseCase
 import pe.edu.upeu.solshiran.domain.usecase.ConsultarAdelantoUseCase
 import pe.edu.upeu.solshiran.domain.usecase.CrearOrdenAdelantoUseCase
 import pe.edu.upeu.solshiran.domain.usecase.ConsultarFechasOcupadasUseCase
+import pe.edu.upeu.solshiran.domain.usecase.ConsultarPanelReservasUseCase
 import pe.edu.upeu.solshiran.domain.usecase.IniciarSesionUseCase
 import pe.edu.upeu.solshiran.domain.usecase.ListarCabanasUseCase
+import pe.edu.upeu.solshiran.domain.usecase.ListarCabanasPanelUseCase
 import pe.edu.upeu.solshiran.domain.usecase.RecuperarSesionUseCase
 import pe.edu.upeu.solshiran.domain.usecase.RegistrarReservaUseCase
 import pe.edu.upeu.solshiran.presentation.auth.LoginViewModel
@@ -29,9 +34,12 @@ import pe.edu.upeu.solshiran.presentation.catalogo.CatalogoViewModel
 import pe.edu.upeu.solshiran.domain.usecase.ObtenerDetalleCabanaUseCase
 import pe.edu.upeu.solshiran.presentation.detalle.DetalleCabanaViewModel
 import pe.edu.upeu.solshiran.presentation.pago.PagoAdelantoViewModel
+import pe.edu.upeu.solshiran.presentation.panel.PanelReservasViewModel
 import pe.edu.upeu.solshiran.presentation.reserva.ReservaViewModel
 
 val dataModule = module {
+    single { PanelReservasApiService(client = get(), configuracion = get()) }
+    single<PanelReservasRepository> { PanelReservasRepositoryImpl(api = get(), authRepository = get()) }
     single { PagoApiService(client = get(), configuracion = get()) }
     single<PagoRepository> { PagoRepositoryImpl(api = get(), authRepository = get()) }
     single { ReservaApiService(client = get(), configuracion = get()) }
@@ -72,6 +80,8 @@ val dataModule = module {
 }
 
 val domainModule = module {
+    factory { ListarCabanasPanelUseCase(repository = get()) }
+    factory { ConsultarPanelReservasUseCase(repository = get()) }
     factory { CrearOrdenAdelantoUseCase(repository = get()) }
     factory { ConsultarAdelantoUseCase(repository = get()) }
     factory { ConsultarFechasOcupadasUseCase(repository = get()) }
@@ -100,6 +110,7 @@ val domainModule = module {
 }
 
 val presentationModule = module {
+    viewModel { PanelReservasViewModel(consultar = get(), listarCabanas = get()) }
     viewModel { (idReserva: Long) ->
         PagoAdelantoViewModel(
             idReserva = idReserva,

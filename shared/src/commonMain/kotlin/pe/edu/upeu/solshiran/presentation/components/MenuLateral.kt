@@ -24,13 +24,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import pe.edu.upeu.solshiran.domain.model.Sesion
+import pe.edu.upeu.solshiran.domain.model.puedeConsultarPanelReservas
 
 @Composable
 fun MenuLateral(
     sesion: Sesion?,
     catalogoSeleccionado: Boolean,
     cuentaSeleccionada: Boolean,
+    panelSeleccionado: Boolean,
     onCatalogo: () -> Unit,
+    onPanelReservas: () -> Unit,
     onCuenta: () -> Unit,
     onIniciarSesion: () -> Unit,
     onCerrarSesion: () -> Unit,
@@ -82,6 +85,14 @@ fun MenuLateral(
                     },
                     selected = catalogoSeleccionado,
                     onClick = onCatalogo
+                )
+            }
+
+            if (sesion.puedeConsultarPanelReservas()) {
+                NavigationDrawerItem(
+                    label = { Text("Panel de reservas") },
+                    selected = panelSeleccionado,
+                    onClick = onPanelReservas
                 )
             }
 

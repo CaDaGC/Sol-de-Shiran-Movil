@@ -12,6 +12,9 @@ data object Login
 data object Cuenta
 
 @Serializable
+data object PanelReservas
+
+@Serializable
 data class DetalleCabana(
     val idCabana: Long
 )

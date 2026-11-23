@@ -1,0 +1,37 @@
+package pe.edu.upeu.solshiran.data.mapper
+
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
+import pe.edu.upeu.solshiran.data.remote.dto.CabanaPanelDto
+import pe.edu.upeu.solshiran.data.remote.dto.PaginaReservasDto
+import pe.edu.upeu.solshiran.data.remote.dto.ReservaPanelDto
+import pe.edu.upeu.solshiran.domain.model.CabanaPanel
+import pe.edu.upeu.solshiran.domain.model.EstadoReservaPanel
+import pe.edu.upeu.solshiran.domain.model.PaginaReservas
+import pe.edu.upeu.solshiran.domain.model.ReservaPanel
+
+fun CabanaPanelDto.aDominio() = CabanaPanel(idCabana, nombre)
+
+fun PaginaReservasDto.aDominio() =
+    PaginaReservas(content.map { it.aDominio() }, page, totalElements, totalPages)
+
+private fun ReservaPanelDto.aDominio() = ReservaPanel(
+    id = idReserva,
+    codigo = codigo?.takeIf { it.isNotBlank() } ?: "Reserva #$idReserva",
+    huesped = nombreUsuario?.takeIf { it.isNotBlank() } ?: "Usuario #$idUsuario",
+    correo = emailUsuario?.takeIf { it.isNotBlank() },
+    cabana = nombreCabana?.takeIf { it.isNotBlank() } ?: "Cabaña #$idCabana",
+    ingreso = LocalDate.parse(fechaIngreso),
+    salida = LocalDate.parse(fechaSalida),
+    horaIngreso = horaIngreso?.let { LocalTime.parse(it) },
+    horaSalida = horaSalida?.let { LocalTime.parse(it) },
+    cantidadHuespedes = cantidadHuespedes,
+    total = montoTotal,
+    saldoPendiente = if (estadoReserva == "PENDIENTE_PAGO" || estadoReserva == "EXPIRADA") {
+        montoTotal
+    } else {
+        saldoPendiente
+    },
+    estado = EstadoReservaPanel.entries.firstOrNull { it.name == estadoReserva }
+        ?: EstadoReservaPanel.DESCONOCIDA
+)
