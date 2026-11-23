@@ -1,5 +1,6 @@
 package pe.edu.upeu.solshiran.presentation.reserva
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CancellationException
@@ -11,6 +12,7 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.plus
+import kotlinx.serialization.json.Json
 import pe.edu.upeu.solshiran.domain.model.CabanaDetalle
 import pe.edu.upeu.solshiran.domain.model.CotizacionReserva
 import pe.edu.upeu.solshiran.domain.model.ErrorCatalogo
@@ -44,19 +46,29 @@ class ReservaViewModel(
     private val obtenerDetalle: ObtenerDetalleCabanaUseCase,
     private val consultarFechas: ConsultarFechasOcupadasUseCase,
     private val consultarDisponibilidad: ConsultarDisponibilidadUseCase,
-    private val registrarReserva: RegistrarReservaUseCase
+    private val registrarReserva: RegistrarReservaUseCase,
+    private val datosGuardados: SavedStateHandle
 ) : ViewModel() {
     val hoy = hoyEnLima()
     val mesInicial = LocalDate(hoy.year, hoy.month, 1)
-    private val _estado = MutableStateFlow(ReservaUiState(mesInicial))
+    private val _estado = MutableStateFlow(
+        ReservaUiState(
+            mes = mesInicial,
+            reserva = datosGuardados.get<String>("reservaTemporal")?.let { Json.decodeFromString<ReservaTemporal>(it) },
+            ingreso = datosGuardados.get<String>("ingresoReserva")?.let { LocalDate.parse(it) },
+            salida = datosGuardados.get<String>("salidaReserva")?.let { LocalDate.parse(it) }
+        )
+    )
     val estado = _estado.asStateFlow()
 
     private var cargaCabana: Job? = null
     private var cargaCalendario: Job? = null
 
     init {
-        cargarCabana()
-        cargarCalendario()
+        if (_estado.value.reserva == null) {
+            cargarCabana()
+            cargarCalendario()
+        }
     }
 
     fun cargarCabana() {
@@ -133,6 +145,9 @@ class ReservaViewModel(
         if (_estado.value.cotizacion?.disponible != true) return
         ejecutar(registrando = true) { estancia, aforo ->
             val reserva = registrarReserva(estancia, aforo)
+            datosGuardados["reservaTemporal"] = Json.encodeToString(reserva)
+            datosGuardados["ingresoReserva"] = estancia.fechaIngreso.toString()
+            datosGuardados["salidaReserva"] = estancia.fechaSalida.toString()
             _estado.update { it.copy(reserva = reserva) }
         }
     }

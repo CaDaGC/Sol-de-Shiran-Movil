@@ -1,6 +1,7 @@
 package pe.edu.upeu.solshiran.domain.model
 
 import kotlinx.datetime.LocalDate
+import kotlinx.serialization.Serializable
 
 data class Estancia(
     val idCabana: Long,
@@ -21,11 +22,13 @@ data class CotizacionReserva(
     val mensaje: String?
 )
 
+@Serializable
 data class ReservaTemporal(
     val id: Long,
     val codigo: String?,
     val expiraEn: String,
-    val total: Double
+    val total: Double,
+    val adelanto: Double
 )
 
 class ErrorReserva(

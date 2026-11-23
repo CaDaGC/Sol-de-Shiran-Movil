@@ -38,6 +38,7 @@ import kotlinx.datetime.plus
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import pe.edu.upeu.solshiran.presentation.catalogo.formatearSoles
+import pe.edu.upeu.solshiran.presentation.pago.PagoAdelantoSection
 
 @Composable
 fun ReservaScreen(
@@ -57,6 +58,18 @@ fun ReservaScreen(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        val reserva = estado.reserva
+        if (reserva != null) {
+            Text("Reserva temporal registrada", style = MaterialTheme.typography.titleLarge)
+            Text("Código: ${reserva.codigo ?: reserva.id}")
+            Text("Ingreso: ${estado.ingreso} a las 11:00")
+            Text("Salida: ${estado.salida} a las 13:00")
+            Text("Total: ${formatearSoles(reserva.total)}")
+            Text("Plazo del adelanto: ${reserva.expiraEn.replace('T', ' ').take(16)}")
+            PagoAdelantoSection(reserva, onSesionInvalida)
+            return@Column
+        }
+
         val cabana = estado.cabana
         if (cabana == null) {
             val error = estado.errorCabana
@@ -70,18 +83,6 @@ fun ReservaScreen(
         }
 
         Text(cabana.nombre, style = MaterialTheme.typography.headlineSmall)
-        val reserva = estado.reserva
-        if (reserva != null) {
-            Text("Reserva temporal registrada", style = MaterialTheme.typography.titleLarge)
-            Text("Código: ${reserva.codigo ?: reserva.id}")
-            Text("Ingreso: ${estado.ingreso} a las 11:00")
-            Text("Salida: ${estado.salida} a las 13:00")
-            Text("Total: ${formatearSoles(reserva.total)}")
-            Text("Vence el ${reserva.expiraEn.replace('T', ' ').take(16)}")
-            Text("Adelanto pendiente de pago.")
-            return@Column
-        }
-
         Text("Selecciona el ingreso y luego la salida.")
         CalendarioReserva(
             estado = estado,

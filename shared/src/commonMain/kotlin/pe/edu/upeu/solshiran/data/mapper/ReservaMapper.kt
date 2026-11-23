@@ -14,7 +14,8 @@ fun FechasOcupadasDto.aDominio() = fechasOcupadas.map { LocalDate.parse(it) }.to
 fun CotizacionReservaDto.aDominio() =
     CotizacionReserva(disponible, noches, montoTotal, montoAdelanto, saldoPendiente, mensaje)
 
-fun ReservaTemporalDto.aDominio() = ReservaTemporal(idReserva, codigo, expiraEn, montoTotal)
+fun ReservaTemporalDto.aDominio() =
+    ReservaTemporal(idReserva, codigo, expiraEn, montoTotal, montoAdelanto)
 
 fun Estancia.aDto() = CrearReservaDto(
     idCabana, fechaIngreso.toString(), fechaSalida.toString(), cantidadHuespedes,

@@ -30,5 +30,6 @@ data class ReservaTemporalDto(
     val idReserva: Long,
     val codigo: String? = null,
     val expiraEn: String,
-    val montoTotal: Double
+    val montoTotal: Double,
+    val montoAdelanto: Double
 )
