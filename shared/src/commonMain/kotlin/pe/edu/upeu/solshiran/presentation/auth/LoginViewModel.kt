@@ -88,6 +88,12 @@ class LoginViewModel(
         terminarSesion("Has cerrado sesión.")
     }
 
+    fun invalidarSesion() {
+        if (_estado.value.sesion != null) {
+            terminarSesion("La sesión no es válida. Inicia sesión nuevamente.")
+        }
+    }
+
     fun validarVigencia() {
         val sesion = _estado.value.sesion ?: return
 

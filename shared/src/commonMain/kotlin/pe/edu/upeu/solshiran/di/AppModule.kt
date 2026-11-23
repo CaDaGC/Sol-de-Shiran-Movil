@@ -5,20 +5,30 @@ import org.koin.dsl.module
 import pe.edu.upeu.solshiran.data.remote.AuthApiService
 import pe.edu.upeu.solshiran.data.remote.CatalogoApiService
 import pe.edu.upeu.solshiran.data.remote.HttpClientFactory
+import pe.edu.upeu.solshiran.data.remote.ReservaApiService
 import pe.edu.upeu.solshiran.data.repository.AuthRepositoryImpl
 import pe.edu.upeu.solshiran.data.repository.CabanaRepositoryImpl
+import pe.edu.upeu.solshiran.data.repository.ReservaRepositoryImpl
 import pe.edu.upeu.solshiran.domain.repository.AuthRepository
 import pe.edu.upeu.solshiran.domain.repository.CabanaRepository
+import pe.edu.upeu.solshiran.domain.repository.ReservaRepository
 import pe.edu.upeu.solshiran.domain.usecase.CerrarSesionUseCase
+import pe.edu.upeu.solshiran.domain.usecase.ConsultarDisponibilidadUseCase
+import pe.edu.upeu.solshiran.domain.usecase.ConsultarFechasOcupadasUseCase
 import pe.edu.upeu.solshiran.domain.usecase.IniciarSesionUseCase
 import pe.edu.upeu.solshiran.domain.usecase.ListarCabanasUseCase
 import pe.edu.upeu.solshiran.domain.usecase.RecuperarSesionUseCase
+import pe.edu.upeu.solshiran.domain.usecase.RegistrarReservaUseCase
 import pe.edu.upeu.solshiran.presentation.auth.LoginViewModel
 import pe.edu.upeu.solshiran.presentation.catalogo.CatalogoViewModel
 import pe.edu.upeu.solshiran.domain.usecase.ObtenerDetalleCabanaUseCase
 import pe.edu.upeu.solshiran.presentation.detalle.DetalleCabanaViewModel
+import pe.edu.upeu.solshiran.presentation.reserva.ReservaViewModel
 
 val dataModule = module {
+    single { ReservaApiService(client = get(), configuracion = get()) }
+    single<ReservaRepository> { ReservaRepositoryImpl(api = get(), authRepository = get()) }
+
     single {
         HttpClientFactory.crear(engine = get())
     }
@@ -54,6 +64,10 @@ val dataModule = module {
 }
 
 val domainModule = module {
+    factory { ConsultarFechasOcupadasUseCase(repository = get()) }
+    factory { ConsultarDisponibilidadUseCase(repository = get()) }
+    factory { RegistrarReservaUseCase(repository = get()) }
+
     factory {
         IniciarSesionUseCase(repository = get())
     }
@@ -76,6 +90,16 @@ val domainModule = module {
 }
 
 val presentationModule = module {
+    viewModel { (idCabana: Long) ->
+        ReservaViewModel(
+            idCabana = idCabana,
+            obtenerDetalle = get(),
+            consultarFechas = get(),
+            consultarDisponibilidad = get(),
+            registrarReserva = get()
+        )
+    }
+
     viewModel {
         LoginViewModel(
             iniciarSesion = get(),

@@ -15,3 +15,6 @@ data object Cuenta
 data class DetalleCabana(
     val idCabana: Long
 )
+
+@Serializable
+data class ReservarCabana(val idCabana: Long)

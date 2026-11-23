@@ -41,6 +41,7 @@ import pe.edu.upeu.solshiran.navigation.Catalogo
 import pe.edu.upeu.solshiran.navigation.Cuenta
 import pe.edu.upeu.solshiran.navigation.DetalleCabana
 import pe.edu.upeu.solshiran.navigation.Login
+import pe.edu.upeu.solshiran.navigation.ReservarCabana
 import pe.edu.upeu.solshiran.presentation.auth.LoginScreen
 import pe.edu.upeu.solshiran.presentation.auth.LoginViewModel
 import pe.edu.upeu.solshiran.presentation.catalogo.CatalogoScreen
@@ -49,6 +50,7 @@ import pe.edu.upeu.solshiran.presentation.components.IconoVolver
 import pe.edu.upeu.solshiran.presentation.components.MenuLateral
 import pe.edu.upeu.solshiran.presentation.cuenta.CuentaScreen
 import pe.edu.upeu.solshiran.presentation.detalle.DetalleCabanaScreen
+import pe.edu.upeu.solshiran.presentation.reserva.ReservaScreen
 
 @Composable
 fun App() {
@@ -123,6 +125,7 @@ private fun NavegacionPrincipal(
     val titulo = when {
         esCatalogo -> "Catálogo"
         esDetalle -> "Detalle de cabaña"
+        destino?.hasRoute<ReservarCabana>() == true -> "Reservar cabaña"
         esCuenta -> "Mi cuenta"
         else -> "Iniciar sesión"
     }
@@ -266,7 +269,27 @@ private fun NavegacionPrincipal(
                             idCabana = ruta.idCabana,
                             onVolverCatalogo = {
                                 volverAlCatalogo()
+                            },
+                            onReservar = {
+                                navController.navigate(ReservarCabana(ruta.idCabana)) {
+                                    launchSingleTop = true
+                                }
                             }
+                        )
+                    } else {
+                        CuentaScreen(sesion)
+                    }
+                }
+
+                composable<ReservarCabana> { entry ->
+                    if (puedeVerCatalogo) {
+                        ReservaScreen(
+                            idCabana = entry.toRoute<ReservarCabana>().idCabana,
+                            autenticado = sesion != null,
+                            onIniciarSesion = {
+                                navController.navigate(Login) { launchSingleTop = true }
+                            },
+                            onSesionInvalida = loginViewModel::invalidarSesion
                         )
                     } else {
                         CuentaScreen(sesion)

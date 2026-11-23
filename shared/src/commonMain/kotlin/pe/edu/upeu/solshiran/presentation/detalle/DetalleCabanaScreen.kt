@@ -33,7 +33,8 @@ import pe.edu.upeu.solshiran.presentation.catalogo.formatearSoles
 @Composable
 fun DetalleCabanaScreen(
     idCabana: Long,
-    onVolverCatalogo: () -> Unit
+    onVolverCatalogo: () -> Unit,
+    onReservar: () -> Unit
 ) {
     val viewModel = koinViewModel<DetalleCabanaViewModel>(
         key = "detalle_$idCabana",
@@ -142,8 +143,7 @@ fun DetalleCabanaScreen(
                     }
 
                     Button(
-                        onClick = {},
-                        enabled = false,
+                        onClick = onReservar,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Reservar ahora")
