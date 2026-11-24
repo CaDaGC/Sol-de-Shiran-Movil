@@ -48,38 +48,26 @@ fun CabanaDetalleDto.aDominio(
     )
 }
 
-private fun resolverImagen(
-    ruta: String?,
-    urlBase: String
-): String? {
-    val imagen = ruta?.trim()
-        ?.takeIf { it.isNotEmpty() }
-        ?: return null
+private fun resolverImagen(ruta: String?, urlBase: String): String? {
+    val imagen = ruta?.trim()?.takeIf { it.isNotEmpty() } ?: return null
 
-    if (imagen.startsWith("/images/")) {
-        return null
-    }
+    val esUrlAbsoluta = imagen.startsWith("http://", ignoreCase = true) ||
+            imagen.startsWith("https://", ignoreCase = true)
 
-    if (
-        imagen.startsWith("https://") ||
-        imagen.startsWith("http://")
-    ) {
-        return imagen
-    }
+    val rutaGateway = if (esUrlAbsoluta) {
+        val url = runCatching { Url(imagen) }.getOrNull() ?: return null
 
-    if (!imagen.startsWith("/api/")) {
-        return null
+        if (!url.encodedPath.startsWith("/api/v1/cabanas/fotos/")) {
+            return imagen
+        }
+
+        url.encodedPath
+    } else {
+        if (!imagen.startsWith("/api/")) return null
+        imagen
     }
 
     val base = Url(urlBase)
-
-    val origen = buildString {
-        append(base.protocol.name)
-        append("://")
-        append(base.host)
-        append(":")
-        append(base.port)
-    }
-
-    return origen + imagen
+    val puerto = if (base.port == base.protocol.defaultPort) "" else ":${base.port}"
+    return "${base.protocol.name}://${base.host}$puerto$rutaGateway"
 }
