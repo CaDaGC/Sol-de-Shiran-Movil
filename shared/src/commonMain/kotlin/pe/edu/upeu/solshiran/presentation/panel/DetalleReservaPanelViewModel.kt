@@ -14,6 +14,8 @@ import pe.edu.upeu.solshiran.domain.model.ErrorReserva
 import pe.edu.upeu.solshiran.domain.model.MetodoPagoRestante
 import pe.edu.upeu.solshiran.domain.model.PagoRestanteRegistro
 import pe.edu.upeu.solshiran.domain.usecase.ObtenerDetalleReservaPanelUseCase
+import pe.edu.upeu.solshiran.domain.model.DanosReserva
+import pe.edu.upeu.solshiran.domain.model.EstadoReservaPanel
 
 data class DetalleReservaPanelUiState(
     val detalle: DetalleReservaPanel? = null,
@@ -23,6 +25,8 @@ data class DetalleReservaPanelUiState(
     val consultandoPago: Boolean = true,
     val registrandoPago: Boolean = false,
     val errorPago: String? = null,
+    val registrandoSalida: Boolean = false,
+    val errorSalida: String? = null,
     val sesionInvalida: Boolean = false
 )
 
@@ -62,6 +66,24 @@ class DetalleReservaPanelViewModel(
                 _estado.update { it.copy(cargando = false, error = e.message, sesionInvalida = e.sesionInvalida) }
             } catch (_: Exception) {
                 _estado.update { it.copy(cargando = false, error = "No se pudo cargar el detalle de la reserva.") }
+            }
+        }
+    }
+
+    fun registrarSalida(danos: DanosReserva?) {
+        if (_estado.value.registrandoSalida || _estado.value.detalle?.estado != EstadoReservaPanel.OCUPADA) return
+        _estado.update { it.copy(registrandoSalida = true, errorSalida = null) }
+        viewModelScope.launch {
+            try {
+                val salida = obtenerDetalle.registrarSalida(idReserva, danos)
+                _estado.update { it.copy(registrandoSalida = false,
+                    detalle = it.detalle?.copy(estado = EstadoReservaPanel.FINALIZADA, checkout = salida)) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: ErrorReserva) {
+                _estado.update { it.copy(registrandoSalida = false, errorSalida = e.message, sesionInvalida = e.sesionInvalida) }
+            } catch (_: Exception) {
+                _estado.update { it.copy(registrandoSalida = false, errorSalida = "No se pudo confirmar la salida. Reintenta con los mismos datos.") }
             }
         }
     }

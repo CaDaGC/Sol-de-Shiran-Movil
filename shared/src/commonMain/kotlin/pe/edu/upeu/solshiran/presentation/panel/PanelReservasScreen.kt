@@ -136,7 +136,7 @@ fun PanelReservasScreen(onSesionInvalida: () -> Unit) {
     detalleReservaId?.let { idReserva ->
         DetalleReservaPanelDialog(
             idReserva = idReserva,
-            onCerrar = { detalleReservaId = null },
+            onCerrar = { detalleReservaId = null; viewModel.reintentar() },
             onSesionInvalida = onSesionInvalida
         )
     }
@@ -230,10 +230,16 @@ private fun DetalleReservaPanelDialog(
     LaunchedEffect(estado.sesionInvalida) {
         if (estado.sesionInvalida) onSesionInvalida()
     }
+    var salidaAbierta by rememberSaveable(idReserva) { mutableStateOf(false) }
+    LaunchedEffect(estado.detalle?.estado) {
+        if (estado.detalle?.estado == EstadoReservaPanel.FINALIZADA) salidaAbierta = false
+    }
+    if (salidaAbierta) SalidaReservaDialog(idReserva, estado.registrandoSalida, estado.errorSalida,
+        onCerrar = { salidaAbierta = false }, onGuardar = viewModel::registrarSalida)
     val detalle = estado.detalle
     val pagoRestante = estado.pagoRestante
-    AlertDialog(
-        onDismissRequest = onCerrar,
+    if (!salidaAbierta) AlertDialog(
+        onDismissRequest = { if (!estado.registrandoSalida) onCerrar() },
         title = { Text("Detalle de reserva") },
         text = {
             Column(
@@ -255,8 +261,8 @@ private fun DetalleReservaPanelDialog(
                         Text("Estado: ${detalle.estado.etiqueta()}")
                         Text("Cliente: ${detalle.huesped}")
                         detalle.correo?.let { Text("Correo: $it") }
-                        Text("Ingreso: ${fechaHora(detalle.ingreso, null)}")
-                        Text("Salida: ${fechaHora(detalle.salida, null)}")
+                        Text("Ingreso: ${fechaHora(detalle.ingreso, detalle.horaIngreso)}")
+                        Text("Salida: ${fechaHora(detalle.salida, detalle.horaSalida)}")
                         Text("Huéspedes: ${detalle.cantidadHuespedes}")
                         Text("Tarifa por noche: ${formatearSoles(detalle.tarifaNoche)}")
                         Text("Total: ${formatearSoles(detalle.total)}")
@@ -264,6 +270,15 @@ private fun DetalleReservaPanelDialog(
                         Text("Saldo pendiente: ${formatearSoles(detalle.saldoPendiente)}")
                         detalle.fechaCreacion?.let { Text("Creada: ${it.replace('T', ' ').take(16)}") }
                         detalle.expiraEn?.let { Text("Vence: ${it.replace('T', ' ').take(16)}") }
+                        detalle.checkout?.let { salida ->
+                            Text("Check-out: "+salida.fecha.replace('T', ' ').take(16))
+                            salida.descripcion?.let { Text("Daños: $it") }
+                            salida.monto?.let { Text("Cobro por daños: "+formatearSoles(it)) }
+                            salida.medioPago?.let { Text("Medio de pago: $it") }
+                        }
+                        if (detalle.estado == EstadoReservaPanel.OCUPADA) {
+                            OutlinedButton(onClick = { salidaAbierta = true }, enabled = !estado.registrandoSalida) { Text("Registrar check-out") }
+                        }
                         if (pagoRestante?.completado == true) {
                             Text("Pago restante registrado: ${formatearSoles(pagoRestante.monto)}")
                             Text("Método: ${pagoRestante.metodoPago.etiqueta}")
@@ -314,7 +329,7 @@ private fun DetalleReservaPanelDialog(
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onCerrar) { Text("Cerrar") } }
+        confirmButton = { TextButton(onClick = onCerrar, enabled = !estado.registrandoSalida) { Text("Cerrar") } }
     )
 }
 

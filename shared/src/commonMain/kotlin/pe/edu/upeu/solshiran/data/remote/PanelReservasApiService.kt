@@ -17,11 +17,30 @@ import pe.edu.upeu.solshiran.data.remote.dto.ReservaDetallePanelDto
 import pe.edu.upeu.solshiran.data.remote.dto.SolicitudPagoRestanteDto
 import pe.edu.upeu.solshiran.domain.model.ErrorReserva
 import pe.edu.upeu.solshiran.domain.model.FiltroPanelReservas
+import pe.edu.upeu.solshiran.data.remote.dto.SolicitudSalidaDto
+import pe.edu.upeu.solshiran.data.remote.dto.SalidaReservaDto
 
 class PanelReservasApiService(private val client: HttpClient, configuracion: ConfiguracionApi) {
     private val reservasUrl = "${configuracion.urlBase.trimEnd('/')}/reservas"
     private val pagosUrl = "${configuracion.urlBase.trimEnd('/')}/pagos"
     private val url = "$reservasUrl/panel"
+
+    suspend fun registrarSalida(idReserva: Long, danos: SolicitudSalidaDto, token: String): SalidaReservaDto =
+        client.post("$reservasUrl/$idReserva/check-out") {
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody(danos)
+        }.let { respuesta ->
+            when (respuesta.status.value) {
+                200 -> respuesta.body()
+                400, 422 -> throw ErrorReserva("Revisa la descripción, el importe y el medio de pago de los daños.")
+                401 -> throw ErrorReserva("Tu sesión expiró. Vuelve a iniciar sesión.", sesionInvalida = true)
+                403 -> throw ErrorReserva("Tu cuenta no tiene permiso para registrar la salida.")
+                404 -> throw ErrorReserva("No se encontró la reserva.")
+                409 -> throw ErrorReserva("La reserva cambió o ya tiene un check-out. Actualiza el detalle antes de continuar.")
+                else -> throw ErrorReserva("No se pudo confirmar la salida. Reintenta con los mismos datos.")
+            }
+        }
 
     suspend fun listarCabanas(token: String): List<CabanaPanelDto> =
         client.get("$url/cabanas") { bearerAuth(token) }.leer()

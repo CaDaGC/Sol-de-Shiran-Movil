@@ -14,6 +14,7 @@ import pe.edu.upeu.solshiran.domain.model.PaginaReservas
 import pe.edu.upeu.solshiran.domain.model.ReservaPanel
 import pe.edu.upeu.solshiran.domain.model.PagoRestanteRegistro
 import pe.edu.upeu.solshiran.domain.model.MetodoPagoRestante
+import pe.edu.upeu.solshiran.domain.model.RegistroSalida
 
 fun CabanaPanelDto.aDominio() = CabanaPanel(idCabana, nombre)
 
@@ -36,7 +37,12 @@ fun ReservaDetallePanelDto.aDominio() = DetalleReservaPanel(
     estado = EstadoReservaPanel.entries.firstOrNull { it.name == estadoReserva }
         ?: EstadoReservaPanel.DESCONOCIDA,
     expiraEn = expiraEn,
-    fechaCreacion = fechaCreacion
+    fechaCreacion = fechaCreacion,
+    horaIngreso = horaIngreso?.let { LocalTime.parse(it) },
+    horaSalida = horaSalida?.let { LocalTime.parse(it) },
+    checkout = checkout?.let {
+        RegistroSalida(it.fecha, it.descripcionDanos, it.montoDanos, it.medioPago)
+    }
 )
 
 fun PagoRestanteDto.aDominio() = PagoRestanteRegistro(

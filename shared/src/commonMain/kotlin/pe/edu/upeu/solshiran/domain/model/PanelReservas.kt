@@ -53,7 +53,10 @@ data class DetalleReservaPanel(
     val saldoPendiente: Double,
     val estado: EstadoReservaPanel,
     val expiraEn: String?,
-    val fechaCreacion: String?
+    val fechaCreacion: String?,
+    val horaIngreso: LocalTime? = null,
+    val horaSalida: LocalTime? = null,
+    val checkout: RegistroSalida? = null
 )
 
 fun Sesion?.puedeConsultarPanelReservas(): Boolean =

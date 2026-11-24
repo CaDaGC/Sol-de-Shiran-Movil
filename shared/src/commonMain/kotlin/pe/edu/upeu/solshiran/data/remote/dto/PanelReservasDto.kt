@@ -49,5 +49,8 @@ data class ReservaDetallePanelDto(
     val saldoPendiente: Double,
     val estadoReserva: String,
     val expiraEn: String? = null,
-    val fechaCreacion: String? = null
+    val fechaCreacion: String? = null,
+    val horaIngreso: String? = null,
+    val horaSalida: String? = null,
+    val checkout: RegistroSalidaDto? = null
 )

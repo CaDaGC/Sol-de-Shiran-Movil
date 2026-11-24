@@ -7,6 +7,7 @@ import pe.edu.upeu.solshiran.domain.model.MetodoPagoRestante
 import pe.edu.upeu.solshiran.domain.model.PagoRestanteRegistro
 import pe.edu.upeu.solshiran.domain.model.SolicitudPagoRestante
 import pe.edu.upeu.solshiran.domain.repository.PanelReservasRepository
+import pe.edu.upeu.solshiran.domain.model.DanosReserva
 
 class ListarCabanasPanelUseCase(private val repository: PanelReservasRepository) {
     suspend operator fun invoke() = repository.listarCabanas()
@@ -22,6 +23,9 @@ class ObtenerDetalleReservaPanelUseCase(private val repository: PanelReservasRep
         if (idReserva <= 0) throw ErrorReserva("No se pudo identificar la reserva.")
         return repository.detalle(idReserva)
     }
+
+    suspend fun registrarSalida(idReserva: Long, danos: DanosReserva?) =
+        repository.registrarSalida(idReserva, danos)
 
     suspend fun consultarPago(idReserva: Long) = repository.consultarPagoRestante(idReserva)
 
