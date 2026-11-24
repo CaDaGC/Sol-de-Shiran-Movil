@@ -34,10 +34,12 @@ fun MenuLateral(
     panelSeleccionado: Boolean,
     gestionCabanasSeleccionado: Boolean,
     misReservasSeleccionado: Boolean,
+    metricasSeleccionadas: Boolean,
     onCatalogo: () -> Unit,
     onPanelReservas: () -> Unit,
     onGestionCabanas: () -> Unit,
     onMisReservas: () -> Unit,
+    onMetricas: () -> Unit,
     onCuenta: () -> Unit,
     onIniciarSesion: () -> Unit,
     onCerrarSesion: () -> Unit,
@@ -105,6 +107,14 @@ fun MenuLateral(
                     label = { Text("Gestión de cabañas") },
                     selected = gestionCabanasSeleccionado,
                     onClick = onGestionCabanas
+                )
+            }
+
+            if (sesion?.rol in setOf("ADMIN", "DUENO")) {
+                NavigationDrawerItem(
+                    label = { Text("Metricas") },
+                    selected = metricasSeleccionadas,
+                    onClick = onMetricas
                 )
             }
 

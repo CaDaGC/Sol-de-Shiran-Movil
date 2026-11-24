@@ -42,6 +42,7 @@ import pe.edu.upeu.solshiran.navigation.Catalogo
 import pe.edu.upeu.solshiran.navigation.Cuenta
 import pe.edu.upeu.solshiran.navigation.DetalleCabana
 import pe.edu.upeu.solshiran.navigation.MisReservas
+import pe.edu.upeu.solshiran.navigation.Metricas
 import pe.edu.upeu.solshiran.presentation.historial.MisReservasScreen
 import pe.edu.upeu.solshiran.navigation.Login
 import pe.edu.upeu.solshiran.navigation.PanelReservas
@@ -57,6 +58,7 @@ import pe.edu.upeu.solshiran.presentation.cuenta.CuentaScreen
 import pe.edu.upeu.solshiran.presentation.detalle.DetalleCabanaScreen
 import pe.edu.upeu.solshiran.presentation.panel.PanelReservasScreen
 import pe.edu.upeu.solshiran.presentation.gestion.GestionCabanasScreen
+import pe.edu.upeu.solshiran.presentation.metricas.MetricasScreen
 import pe.edu.upeu.solshiran.presentation.reserva.ReservaScreen
 
 @Composable
@@ -132,6 +134,7 @@ private fun NavegacionPrincipal(
     val esCuenta = destino?.hasRoute<Cuenta>() == true
     val esPanel = destino?.hasRoute<PanelReservas>() == true
     val esGestionCabanas = destino?.hasRoute<GestionCabanas>() == true
+    val esMetricas = destino?.hasRoute<Metricas>() == true
 
     val titulo = when {
         esCatalogo -> "Catálogo"
@@ -140,6 +143,7 @@ private fun NavegacionPrincipal(
         esCuenta -> "Mi cuenta"
         esPanel -> "Panel de reservas"
         esGestionCabanas -> "Gestión de cabañas"
+        esMetricas -> "Metricas"
         destino?.hasRoute<MisReservas>() == true -> "Mis reservas"
         else -> "Iniciar sesión"
     }
@@ -175,6 +179,7 @@ private fun NavegacionPrincipal(
                     panelSeleccionado = esPanel,
                     gestionCabanasSeleccionado = esGestionCabanas,
                     misReservasSeleccionado = destino?.hasRoute<MisReservas>() == true,
+                    metricasSeleccionadas = esMetricas,
                     onCatalogo = {
                         scope.launch {
                             drawerState.close()
@@ -199,6 +204,12 @@ private fun NavegacionPrincipal(
                         scope.launch {
                             drawerState.close()
                             navController.navigate(GestionCabanas) { launchSingleTop = true }
+                        }
+                    },
+                    onMetricas = {
+                        scope.launch {
+                            drawerState.close()
+                            navController.navigate(Metricas) { launchSingleTop = true }
                         }
                     },
                     onCuenta = {
@@ -363,6 +374,14 @@ private fun NavegacionPrincipal(
 
                 composable<Cuenta> {
                     CuentaScreen(sesion)
+                }
+
+                composable<Metricas> {
+                    if (sesion?.rol in setOf("ADMIN", "DUENO")) {
+                        MetricasScreen()
+                    } else {
+                        CuentaScreen(sesion)
+                    }
                 }
             }
         }

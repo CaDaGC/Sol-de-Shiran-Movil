@@ -21,6 +21,9 @@ data object PanelReservas
 data object GestionCabanas
 
 @Serializable
+data object Metricas
+
+@Serializable
 data class DetalleCabana(
     val idCabana: Long
 )
