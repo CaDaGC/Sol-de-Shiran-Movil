@@ -33,9 +33,11 @@ fun MenuLateral(
     cuentaSeleccionada: Boolean,
     panelSeleccionado: Boolean,
     gestionCabanasSeleccionado: Boolean,
+    misReservasSeleccionado: Boolean,
     onCatalogo: () -> Unit,
     onPanelReservas: () -> Unit,
     onGestionCabanas: () -> Unit,
+    onMisReservas: () -> Unit,
     onCuenta: () -> Unit,
     onIniciarSesion: () -> Unit,
     onCerrarSesion: () -> Unit,
@@ -87,6 +89,14 @@ fun MenuLateral(
                     },
                     selected = catalogoSeleccionado,
                     onClick = onCatalogo
+                )
+            }
+
+            if (sesion?.rol == "CLIENTE") {
+                NavigationDrawerItem(
+                    label = { Text("Mis reservas") },
+                    selected = misReservasSeleccionado,
+                    onClick = onMisReservas
                 )
             }
 

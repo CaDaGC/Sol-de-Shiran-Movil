@@ -41,6 +41,8 @@ import pe.edu.upeu.solshiran.domain.model.puedeConsultarPanelReservas
 import pe.edu.upeu.solshiran.navigation.Catalogo
 import pe.edu.upeu.solshiran.navigation.Cuenta
 import pe.edu.upeu.solshiran.navigation.DetalleCabana
+import pe.edu.upeu.solshiran.navigation.MisReservas
+import pe.edu.upeu.solshiran.presentation.historial.MisReservasScreen
 import pe.edu.upeu.solshiran.navigation.Login
 import pe.edu.upeu.solshiran.navigation.PanelReservas
 import pe.edu.upeu.solshiran.navigation.GestionCabanas
@@ -138,6 +140,7 @@ private fun NavegacionPrincipal(
         esCuenta -> "Mi cuenta"
         esPanel -> "Panel de reservas"
         esGestionCabanas -> "Gestión de cabañas"
+        destino?.hasRoute<MisReservas>() == true -> "Mis reservas"
         else -> "Iniciar sesión"
     }
 
@@ -171,6 +174,7 @@ private fun NavegacionPrincipal(
                     cuentaSeleccionada = esCuenta,
                     panelSeleccionado = esPanel,
                     gestionCabanasSeleccionado = esGestionCabanas,
+                    misReservasSeleccionado = destino?.hasRoute<MisReservas>() == true,
                     onCatalogo = {
                         scope.launch {
                             drawerState.close()
@@ -183,6 +187,12 @@ private fun NavegacionPrincipal(
                             if (!navController.popBackStack<PanelReservas>(inclusive = false)) {
                                 navController.navigate(PanelReservas) { launchSingleTop = true }
                             }
+                        }
+                    },
+                    onMisReservas = {
+                        scope.launch {
+                            drawerState.close()
+                            navController.navigate(MisReservas) { launchSingleTop = true }
                         }
                     },
                     onGestionCabanas = {
@@ -345,6 +355,10 @@ private fun NavegacionPrincipal(
                         sesion = sesion,
                         onSesionInvalida = loginViewModel::invalidarSesion
                     )
+                }
+
+                composable<MisReservas> {
+                    MisReservasScreen(sesion, onSesionInvalida = loginViewModel::invalidarSesion)
                 }
 
                 composable<Cuenta> {
