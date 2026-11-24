@@ -148,6 +148,8 @@ fun DetalleCabanaScreen(
                     ) {
                         Text("Reservar ahora")
                     }
+
+                    ResenasSection(idCabana)
                 }
             }
         }

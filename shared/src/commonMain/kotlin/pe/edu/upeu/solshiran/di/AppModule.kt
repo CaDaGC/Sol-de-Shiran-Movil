@@ -9,6 +9,7 @@ import pe.edu.upeu.solshiran.data.remote.GestionCabanasApiService
 import pe.edu.upeu.solshiran.data.remote.PagoApiService
 import pe.edu.upeu.solshiran.data.remote.PanelReservasApiService
 import pe.edu.upeu.solshiran.data.remote.ReservaApiService
+import pe.edu.upeu.solshiran.data.remote.ResenasApiService
 import pe.edu.upeu.solshiran.data.repository.AuthRepositoryImpl
 import pe.edu.upeu.solshiran.data.repository.CabanaRepositoryImpl
 import pe.edu.upeu.solshiran.data.repository.PagoRepositoryImpl
@@ -37,6 +38,7 @@ import pe.edu.upeu.solshiran.presentation.auth.LoginViewModel
 import pe.edu.upeu.solshiran.presentation.catalogo.CatalogoViewModel
 import pe.edu.upeu.solshiran.domain.usecase.ObtenerDetalleCabanaUseCase
 import pe.edu.upeu.solshiran.presentation.detalle.DetalleCabanaViewModel
+import pe.edu.upeu.solshiran.presentation.detalle.ResenasViewModel
 import pe.edu.upeu.solshiran.presentation.pago.PagoAdelantoViewModel
 import pe.edu.upeu.solshiran.presentation.panel.PanelReservasViewModel
 import pe.edu.upeu.solshiran.presentation.panel.DetalleReservaPanelViewModel
@@ -49,6 +51,7 @@ import pe.edu.upeu.solshiran.domain.usecase.ConsultarMisReservasUseCase
 import pe.edu.upeu.solshiran.presentation.historial.MisReservasViewModel
 
 val dataModule = module {
+    single { ResenasApiService(client = get(), configuracion = get()) }
     single { MisReservasApiService(client = get(), configuracion = get()) }
     single<MisReservasRepository> {
         MisReservasRepositoryImpl(api = get(), auth = get())
@@ -129,6 +132,7 @@ val domainModule = module {
 }
 
 val presentationModule = module {
+    viewModel { (idCabana: Long) -> ResenasViewModel(idCabana = idCabana, api = get(), auth = get()) }
     viewModel { MisReservasViewModel(consultar = get()) }
     viewModel { GestionCabanasViewModel(repository = get()) }
     viewModel { PanelReservasViewModel(consultar = get(), listarCabanas = get()) }
