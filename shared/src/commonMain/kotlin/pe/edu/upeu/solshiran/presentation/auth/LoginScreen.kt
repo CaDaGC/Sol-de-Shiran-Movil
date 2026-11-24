@@ -35,7 +35,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel,
-    onVolverCatalogo: () -> Unit
+    onVolverCatalogo: () -> Unit,
+    onRegistrarse: () -> Unit
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
 
@@ -148,6 +149,10 @@ fun LoginScreen(
                         "Ingresar"
                     }
                 )
+            }
+
+            TextButton(onClick = onRegistrarse, enabled = !estado.cargando) {
+                Text("Crear cuenta")
             }
 
             TextButton(

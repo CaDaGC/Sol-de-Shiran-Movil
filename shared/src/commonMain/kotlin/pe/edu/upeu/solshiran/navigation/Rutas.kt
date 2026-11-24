@@ -9,6 +9,9 @@ data object Catalogo
 data object Login
 
 @Serializable
+data object Registro
+
+@Serializable
 data object MisReservas
 
 @Serializable

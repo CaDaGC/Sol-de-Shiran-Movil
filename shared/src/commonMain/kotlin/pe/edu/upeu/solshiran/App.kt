@@ -44,11 +44,13 @@ import pe.edu.upeu.solshiran.navigation.DetalleCabana
 import pe.edu.upeu.solshiran.navigation.MisReservas
 import pe.edu.upeu.solshiran.presentation.historial.MisReservasScreen
 import pe.edu.upeu.solshiran.navigation.Login
+import pe.edu.upeu.solshiran.navigation.Registro
 import pe.edu.upeu.solshiran.navigation.PanelReservas
 import pe.edu.upeu.solshiran.navigation.GestionCabanas
 import pe.edu.upeu.solshiran.navigation.ReservarCabana
 import pe.edu.upeu.solshiran.presentation.auth.LoginScreen
 import pe.edu.upeu.solshiran.presentation.auth.LoginViewModel
+import pe.edu.upeu.solshiran.presentation.auth.RegistroScreen
 import pe.edu.upeu.solshiran.presentation.catalogo.CatalogoScreen
 import pe.edu.upeu.solshiran.presentation.components.IconoMenu
 import pe.edu.upeu.solshiran.presentation.components.IconoVolver
@@ -141,6 +143,7 @@ private fun NavegacionPrincipal(
         esPanel -> "Panel de reservas"
         esGestionCabanas -> "Gestión de cabañas"
         destino?.hasRoute<MisReservas>() == true -> "Mis reservas"
+        destino?.hasRoute<Registro>() == true -> "Crear cuenta"
         else -> "Iniciar sesión"
     }
 
@@ -338,8 +341,15 @@ private fun NavegacionPrincipal(
                         viewModel = loginViewModel,
                         onVolverCatalogo = {
                             volverAlCatalogo()
+                        },
+                        onRegistrarse = {
+                            navController.navigate(Registro) { launchSingleTop = true }
                         }
                     )
+                }
+
+                composable<Registro> {
+                    RegistroScreen(onIniciarSesion = { navController.popBackStack() })
                 }
 
                 composable<PanelReservas> {
